@@ -97,7 +97,7 @@ public class ImageActivity extends AppCompatActivity {
 
         mVisible = true;
 //        mControlsView = findViewById(R.id.fullscreen_content_controls);
-        mContentView = findViewById(R.id.item_title);
+        mContentView = findViewById(R.id.item_card);
 
 
         // Set up the user interaction to manually show or hide the system UI.
@@ -117,6 +117,7 @@ public class ImageActivity extends AppCompatActivity {
         ImgurImage image = getIntent().getParcelableExtra("test");
         TextView tv = (TextView) findViewById(R.id.item_title);
         tv.setText(image.title);
+        tv.setTextColor(getResources().getColor(R.color.cardview_dark_background));
         Picasso
                 .with(this)
                 .load("https://i.imgur.com/" + image.id + ".jpg")
@@ -139,7 +140,8 @@ public class ImageActivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == android.R.id.home) {
             // This ID represents the Home or Up button.
-            NavUtils.navigateUpFromSameTask(this);
+//            NavUtils.navigateUpFromSameTask(this);
+            finish();
             return true;
         }
         return super.onOptionsItemSelected(item);
