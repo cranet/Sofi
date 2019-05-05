@@ -2,22 +2,23 @@ package com.toad.sofiapp;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -32,7 +33,7 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
     private EndlessRecyclerViewScrollListener scrollListener;
     private String mquery;
     private int page;
-    private List<ImgurImage> images = new ArrayList<>();
+    private ArrayList<ImgurImage> images = new ArrayList<>();
     private MainAdapter mainAdapter;
 
 
@@ -48,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
             public boolean onQueryTextSubmit(String query) {
                 scrollListener.resetState();
                 images.clear();
-                Log.d("MAINACTIVITY", query);
+                Log.d("MAIN ACTIVITY", query);
                 mquery = query;
                 fetchData();
                 return true;
@@ -73,6 +74,10 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
         rv.addOnScrollListener(scrollListener);
         mainAdapter = new MainAdapter(this, images, listener);
         rv.setAdapter(mainAdapter);
+
+        //todo remove
+        mquery = "cat";
+        fetchData();
     }
 
     private void fetchData() {
@@ -90,29 +95,22 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
 
         httpClient.newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) {
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Log.e("MAIN ACTIVITY", "An error has occurred " + e);
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
 
-                try {
-                    JSONObject data = new JSONObject(response.body().string());
-                    JSONArray items = data.getJSONArray("data");
+                if (response.body() != null) {
+                    Type listType = new TypeToken<ArrayList<ImgurImage>>() {
+                    }.getType();
+                    GsonBuilder gsonBuilder = new GsonBuilder();
+                    gsonBuilder.registerTypeAdapter(listType, new ImgurDeserializer());
+                    Gson gson = gsonBuilder.create();
 
-                    for (int i = 0; i < items.length(); i++) {
-                        JSONObject item = items.getJSONObject(i);
-                        ImgurImage image = new ImgurImage();
-                        if (item.getBoolean("is_album")) {
-                            image.id = item.getString("cover");
-                        } else {
-                            image.id = item.getString("id");
-                        }
-                        image.title = item.getString("title");
-
-                        images.add(image); // Add photo to list
-                    }
+                    ArrayList<ImgurImage> a = gson.fromJson(response.body().string(), listType);
+                    images.addAll(a);
 
                     runOnUiThread(new Runnable() {
                         @Override
@@ -121,9 +119,6 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
                             progressBar.setVisibility(View.GONE);
                         }
                     });
-
-                } catch (Exception e) {
-
                 }
             }
         });
@@ -131,16 +126,16 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
 
     @Override
     public void onListInteraction(ImgurImage image) {
-        Log.d("testy", "list interaction");
+        Log.d("MAIN ACTIVITY", "list interaction");
 
         Intent intent = new Intent(this, ImageActivity.class);
-        intent.putExtra("test", (Parcelable) image);
+        intent.putExtra("test", image);
         startActivity(intent);
 
     }
 
     private void loadNextDataFromApi() {
-        Log.d("MAINACTIVITY", " loading more data: " + page);
+        Log.d("MAIN ACTIVITY", " loading more data: " + page);
         fetchData();
     }
 

@@ -59,6 +59,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         Picasso
                 .with(context)
                 .load("https://i.imgur.com/" + listImages.get(position).id + ".jpg")
+//                .fit()
                 .into(holder.photo);
         holder.title.setText(listImages.get(position).title);
     }
