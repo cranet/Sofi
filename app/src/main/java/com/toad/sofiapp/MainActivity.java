@@ -81,6 +81,8 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
     }
 
     private void fetchData() {
+        final ProgressBar progressBar = findViewById(R.id.progress_circular);
+        progressBar.setVisibility(View.VISIBLE);
         if (mquery == null) {
             return;
         }
@@ -90,8 +92,7 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
                 .header("Authorization", "Client-ID 126701cd8332f32")
                 .build();
         page++;
-        final ProgressBar progressBar = findViewById(R.id.progress_circular);
-        progressBar.setVisibility(View.VISIBLE);
+
 
         httpClient.newCall(request).enqueue(new Callback() {
             @Override

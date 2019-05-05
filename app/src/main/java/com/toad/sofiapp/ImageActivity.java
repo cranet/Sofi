@@ -43,20 +43,15 @@ public class ImageActivity extends AppCompatActivity {
         @SuppressLint("InlinedApi")
         @Override
         public void run() {
-            // Delayed removal of status and navigation bar
-
-            // Note that some of these constants are new as of API 16 (Jelly Bean)
-            // and API 19 (KitKat). It is safe to use them, as they are inlined
-            // at compile-time and do nothing on earlier devices.
+            // Delayed removal of status bar
             mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
                     | View.SYSTEM_UI_FLAG_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
         }
     };
-    private View mControlsView;
+//    private View mControlsView;
     private final Runnable mShowPart2Runnable = new Runnable() {
         @Override
         public void run() {
@@ -65,7 +60,7 @@ public class ImageActivity extends AppCompatActivity {
             if (actionBar != null) {
                 actionBar.show();
             }
-            mControlsView.setVisibility(View.VISIBLE);
+//            mControlsView.setVisibility(View.VISIBLE);
         }
     };
     private boolean mVisible;
@@ -101,8 +96,8 @@ public class ImageActivity extends AppCompatActivity {
         }
 
         mVisible = true;
-        mControlsView = findViewById(R.id.fullscreen_content_controls);
-        mContentView = findViewById(R.id.fullscreen_content);
+//        mControlsView = findViewById(R.id.fullscreen_content_controls);
+        mContentView = findViewById(R.id.item_title);
 
 
         // Set up the user interaction to manually show or hide the system UI.
@@ -120,12 +115,12 @@ public class ImageActivity extends AppCompatActivity {
 
 
         ImgurImage image = getIntent().getParcelableExtra("test");
-        TextView tv = (TextView) findViewById(R.id.fullscreen_content);
+        TextView tv = (TextView) findViewById(R.id.item_title);
         tv.setText(image.title);
         Picasso
                 .with(this)
                 .load("https://i.imgur.com/" + image.id + ".jpg")
-                .into((ImageView) findViewById(R.id.image_activity_image));
+                .into((ImageView) findViewById(R.id.item_image));
 
     }
 
@@ -164,7 +159,7 @@ public class ImageActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.hide();
         }
-        mControlsView.setVisibility(View.GONE);
+//        mControlsView.setVisibility(View.GONE);
         mVisible = false;
 
         // Schedule a runnable to remove the status and navigation bar after a delay
