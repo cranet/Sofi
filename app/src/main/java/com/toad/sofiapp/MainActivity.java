@@ -47,12 +47,17 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
         sv.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                scrollListener.resetState();
-                images.clear();
-                Log.d("MAIN ACTIVITY", query);
-                mquery = query;
-                fetchData();
-                return true;
+
+                if (!query.isEmpty()) {
+                    images.clear();
+                    mainAdapter.notifyDataSetChanged();
+                    scrollListener.resetState();
+
+                    Log.d("MAIN ACTIVITY", query);
+                    mquery = query;
+                    fetchData();
+                }
+                return false;
             }
 
             @Override
@@ -75,9 +80,9 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
         mainAdapter = new MainAdapter(this, images, listener);
         rv.setAdapter(mainAdapter);
 
-        //todo remove
-        mquery = "cat";
-        fetchData();
+//        //todo remove
+//        mquery = "cat";
+//        fetchData();
     }
 
     private void fetchData() {
