@@ -42,16 +42,13 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
 
         holder.image = listImages.get(position);
-        holder.title = holder.mView.findViewById(R.id.title);
-        holder.photo = holder.mView.findViewById(R.id.photo);
+        holder.title = holder.mView.findViewById(R.id.item_title);
+        holder.photo = holder.mView.findViewById(R.id.item_image);
 
-        holder.mView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (null != listener) {
-                    //notify selection
-                    listener.onListInteraction(holder.image);
-                }
+        holder.mView.setOnClickListener(v -> {
+            if (null != listener) {
+                //notify selection
+                listener.onListInteraction(holder.image);
             }
         });
 

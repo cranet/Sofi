@@ -4,7 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-public abstract class EndlessRecyclerViewScrollListener extends RecyclerView.OnScrollListener {
+abstract class EndlessRecyclerViewScrollListener extends RecyclerView.OnScrollListener {
     private int currentPage;
     private int previousTotalItemCount;
     private boolean loading = true;
@@ -60,6 +60,6 @@ public abstract class EndlessRecyclerViewScrollListener extends RecyclerView.OnS
         this.loading = true;
     }
 
-    public abstract void onLoadMore(int page, int totalItemsCount, RecyclerView view);
+    protected abstract void onLoadMore(int page, int totalItemsCount, RecyclerView view);
 
 }

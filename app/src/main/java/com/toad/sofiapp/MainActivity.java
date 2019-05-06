@@ -1,8 +1,8 @@
 package com.toad.sofiapp;
 
+import android.app.ActivityOptions;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -12,46 +12,45 @@ import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.reflect.TypeToken;
 
-import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.List;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity implements OnListInteractionListener {
 
-    private OkHttpClient httpClient;
-    private OnListInteractionListener listener;
     private EndlessRecyclerViewScrollListener scrollListener;
-    private String mquery;
+    private String mQuery;
     private int page;
-    private List<ImgurImage> images = new ArrayList<>();
+    private ArrayList<ImgurImage> images = new ArrayList<>();
     private MainAdapter mainAdapter;
+    Network network = new Network();
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        listener = this;
+        OnListInteractionListener listener = this;
 
         SearchView sv = findViewById(R.id.search);
         sv.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                scrollListener.resetState();
-                images.clear();
-                Log.d("MAINACTIVITY", query);
-                mquery = query;
-                fetchData();
-                return true;
+
+                if (!query.isEmpty()) {
+                    images.clear();
+                    mainAdapter.notifyDataSetChanged();
+                    scrollListener.resetState();
+
+                    Log.d("MAIN ACTIVITY", query);
+                    mQuery = query;
+                    networkCall();
+                }
+                return false;
             }
 
             @Override
@@ -73,75 +72,61 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
         rv.addOnScrollListener(scrollListener);
         mainAdapter = new MainAdapter(this, images, listener);
         rv.setAdapter(mainAdapter);
+
     }
 
-    private void fetchData() {
-        if (mquery == null) {
-            return;
-        }
-        httpClient = new OkHttpClient.Builder().build();
-        Request request = new Request.Builder()
-                .url("https://api.imgur.com/3/gallery/search/time/" + page + "?q=" + mquery)
-                .header("Authorization", "Client-ID 126701cd8332f32")
-                .build();
-        page++;
+    private void networkCall() {
         final ProgressBar progressBar = findViewById(R.id.progress_circular);
         progressBar.setVisibility(View.VISIBLE);
-
-        httpClient.newCall(request).enqueue(new Callback() {
+        if (mQuery == null) {
+            return;
+        }
+        network.getGallery(page, mQuery, this, new Network.RequestListener<JsonElement>() {
             @Override
-            public void onFailure(Call call, IOException e) {
-                Log.e("MAIN ACTIVITY", "An error has occurred " + e);
+            public void onSuccess(JsonElement response) {
+//                Log.i("RETROFIT",response.toString());
+
+                Type listType = new TypeToken<ArrayList<ImgurImage>>() {
+                }.getType();
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.registerTypeAdapter(listType, new ImgurDeserializer());
+                Gson gson = gsonBuilder.create();
+
+                ArrayList<ImgurImage> a = gson.fromJson(response, listType);
+                images.addAll(a);
+
+                runOnUiThread(() -> {
+                    mainAdapter.notifyItemRangeInserted(mainAdapter.getItemCount(), images.size() - 1);
+                    progressBar.setVisibility(View.GONE);
+                    page++;
+                });
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            public void onResponse() {
 
-                try {
-                    JSONObject data = new JSONObject(response.body().string());
-                    JSONArray items = data.getJSONArray("data");
+            }
 
-                    for (int i = 0; i < items.length(); i++) {
-                        JSONObject item = items.getJSONObject(i);
-                        ImgurImage image = new ImgurImage();
-                        if (item.getBoolean("is_album")) {
-                            image.id = item.getString("cover");
-                        } else {
-                            image.id = item.getString("id");
-                        }
-                        image.title = item.getString("title");
+            @Override
+            public void onError() {
 
-                        images.add(image); // Add photo to list
-                    }
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mainAdapter.notifyItemRangeInserted(mainAdapter.getItemCount(), images.size() - 1);
-                            progressBar.setVisibility(View.GONE);
-                        }
-                    });
-
-                } catch (Exception e) {
-
-                }
             }
         });
     }
 
     @Override
     public void onListInteraction(ImgurImage image) {
-        Log.d("testy", "list interaction");
+        Log.d("MAIN ACTIVITY", "list interaction");
 
         Intent intent = new Intent(this, ImageActivity.class);
-        intent.putExtra("test", (Parcelable) image);
-        startActivity(intent);
+        intent.putExtra("image", image);
+        startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(this).toBundle());
 
     }
 
     private void loadNextDataFromApi() {
-        Log.d("MAINACTIVITY", " loading more data: " + page);
-        fetchData();
+        Log.d("MAIN ACTIVITY", " loading more data: " + page);
+        networkCall();
     }
 
 }

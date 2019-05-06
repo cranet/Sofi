@@ -5,10 +5,10 @@ import android.os.Parcelable;
 
 public class ImgurImage implements Parcelable {
 
-    public String id;
-    public String title;
+    String id;
+    String title;
 
-    protected ImgurImage(Parcel in) {
+    private ImgurImage(Parcel in) {
         id = in.readString();
         title = in.readString();
     }
@@ -25,7 +25,7 @@ public class ImgurImage implements Parcelable {
         }
     };
 
-    public ImgurImage() {
+    ImgurImage() {
 
     }
 
