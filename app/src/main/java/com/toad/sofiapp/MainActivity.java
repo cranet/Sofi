@@ -22,6 +22,7 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements OnListInteractionListener {
 
+    private static final String TAG = "MAIN_ACTIVITY";
     private EndlessRecyclerViewScrollListener scrollListener;
     private String mQuery;
     private int page;
@@ -46,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
                     mainAdapter.notifyDataSetChanged();
                     scrollListener.resetState();
 
-                    Log.d("MAIN ACTIVITY", query);
+                    Log.d(TAG, query);
                     mQuery = query;
                     networkCall();
                 }
@@ -59,13 +60,14 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
             }
         });
 
-        RecyclerView rv = findViewById(R.id.rv_of_photos);
+        RecyclerView rv = findViewById(R.id.rv_images);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         rv.setLayoutManager(linearLayoutManager);
         scrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager) {
             @Override
             public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
-                loadNextDataFromApi();
+                Log.d(TAG, " loading more data: " + page);
+                networkCall();
             }
         };
 
@@ -84,7 +86,6 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
         network.getGallery(page, mQuery, this, new Network.RequestListener<JsonElement>() {
             @Override
             public void onSuccess(JsonElement response) {
-//                Log.i("RETROFIT",response.toString());
 
                 Type listType = new TypeToken<ArrayList<ImgurImage>>() {
                 }.getType();
@@ -109,24 +110,19 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
 
             @Override
             public void onError() {
-
+                Log.e(TAG, "Error loading data from Imgur");
             }
         });
     }
 
     @Override
     public void onListInteraction(ImgurImage image) {
-        Log.d("MAIN ACTIVITY", "list interaction");
+        Log.d(TAG, "list interaction");
 
         Intent intent = new Intent(this, ImageActivity.class);
         intent.putExtra("image", image);
         startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(this).toBundle());
 
-    }
-
-    private void loadNextDataFromApi() {
-        Log.d("MAIN ACTIVITY", " loading more data: " + page);
-        networkCall();
     }
 
 }

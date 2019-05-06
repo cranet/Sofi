@@ -20,10 +20,13 @@ public class ImgurDeserializer implements JsonDeserializer<ArrayList<ImgurImage>
         JsonArray data = (JsonArray) jsonObject.get("data");
         ArrayList<ImgurImage> images = new ArrayList<>();
 
+        /*
+        Use the album cover image if result is an album
+         */
         for (JsonElement item : data) {
             JsonObject itemObject = item.getAsJsonObject();
             ImgurImage image = new ImgurImage();
-            image.title = itemObject.get("title").getAsString();
+            image.title = itemObject.get("tvTitle").getAsString();
 
             if (itemObject.get("is_album").getAsBoolean()) {
                 image.id = itemObject.get("cover").getAsString();

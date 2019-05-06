@@ -1,6 +1,7 @@
 package com.toad.sofiapp;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,8 +43,8 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
 
         holder.image = listImages.get(position);
-        holder.title = holder.mView.findViewById(R.id.item_title);
-        holder.photo = holder.mView.findViewById(R.id.item_image);
+        holder.tvTitle = holder.mView.findViewById(R.id.item_title);
+        holder.ivImage = holder.mView.findViewById(R.id.item_image);
 
         holder.mView.setOnClickListener(v -> {
             if (null != listener) {
@@ -52,12 +53,19 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             }
         });
 
-        //load into layout
-        Picasso
-                .with(context)
-                .load("https://i.imgur.com/" + listImages.get(position).id + ".jpg")
-                .into(holder.photo);
-        holder.title.setText(listImages.get(position).title);
+        /*
+        load into layout
+        try catch to prevent crash on image too large exception
+         */
+        try {
+            Picasso
+                    .with(context)
+                    .load("https://i.imgur.com/" + listImages.get(position).id + ".jpg")
+                    .into(holder.ivImage);
+            holder.tvTitle.setText(listImages.get(position).title);
+        }catch (Exception e) {
+            Log.e("Error loading", e.getMessage());
+        }
     }
 
     @Override
@@ -69,8 +77,8 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
         final View mView;
         ImgurImage image;
-        ImageView photo;
-        TextView title;
+        ImageView ivImage;
+        TextView tvTitle;
 
         ViewHolder(View view) {
             super(view);
