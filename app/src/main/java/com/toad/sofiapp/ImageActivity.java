@@ -59,7 +59,7 @@ public class ImageActivity extends AppCompatActivity {
         // Set up the user interaction to manually show or hide the system UI.
         mContentView.setOnClickListener(view -> toggle());
 
-        ImgurImage image = getIntent().getParcelableExtra("test");
+        ImgurImage image = getIntent().getParcelableExtra("image");
         TextView tv = findViewById(R.id.item_title);
         tv.setText(image.title);
         tv.setTextColor(getColor(R.color.cardview_dark_background));

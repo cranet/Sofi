@@ -1,5 +1,6 @@
 package com.toad.sofiapp;
 
+import android.app.ActivityOptions;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -122,8 +123,8 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
         Log.d("MAIN ACTIVITY", "list interaction");
 
         Intent intent = new Intent(this, ImageActivity.class);
-        intent.putExtra("test", image);
-        startActivity(intent);
+        intent.putExtra("image", image);
+        startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(this).toBundle());
 
     }
 
