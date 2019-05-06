@@ -73,10 +73,6 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
         mainAdapter = new MainAdapter(this, images, listener);
         rv.setAdapter(mainAdapter);
 
-//        //todo remove
-        mQuery = "cat";
-        networkCall();
-
     }
 
     private void networkCall() {
