@@ -1,6 +1,7 @@
 package com.toad.sofiapp;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,12 +53,19 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             }
         });
 
-        //load into layout
-        Picasso
-                .with(context)
-                .load("https://i.imgur.com/" + listImages.get(position).id + ".jpg")
-                .into(holder.photo);
-        holder.title.setText(listImages.get(position).title);
+        /*
+        load into layout
+        try catch to prevent crash on image too large exception
+         */
+        try {
+            Picasso
+                    .with(context)
+                    .load("https://i.imgur.com/" + listImages.get(position).id + ".jpg")
+                    .into(holder.photo);
+            holder.title.setText(listImages.get(position).title);
+        }catch (Exception e) {
+            Log.e("Error loading", e.getMessage());
+        }
     }
 
     @Override
