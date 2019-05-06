@@ -6,7 +6,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -14,34 +13,27 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-
 public class MainActivity extends AppCompatActivity implements OnListInteractionListener {
 
-    private OkHttpClient httpClient;
-    private OnListInteractionListener listener;
     private EndlessRecyclerViewScrollListener scrollListener;
-    private String mquery;
+    private String mQuery;
     private int page;
     private ArrayList<ImgurImage> images = new ArrayList<>();
     private MainAdapter mainAdapter;
+    Network network = new Network();
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        listener = this;
+        OnListInteractionListener listener = this;
 
         SearchView sv = findViewById(R.id.search);
         sv.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -54,8 +46,8 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
                     scrollListener.resetState();
 
                     Log.d("MAIN ACTIVITY", query);
-                    mquery = query;
-                    fetchData();
+                    mQuery = query;
+                    networkCall();
                 }
                 return false;
             }
@@ -81,51 +73,46 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
         rv.setAdapter(mainAdapter);
 
 //        //todo remove
-//        mquery = "cat";
-//        fetchData();
+        mQuery = "cat";
+        networkCall();
+
     }
 
-    private void fetchData() {
+    private void networkCall() {
         final ProgressBar progressBar = findViewById(R.id.progress_circular);
         progressBar.setVisibility(View.VISIBLE);
-        if (mquery == null) {
+        if (mQuery == null) {
             return;
         }
-        httpClient = new OkHttpClient.Builder().build();
-        Request request = new Request.Builder()
-                .url("https://api.imgur.com/3/gallery/search/time/" + page + "?q=" + mquery)
-                .header("Authorization", "Client-ID 126701cd8332f32")
-                .build();
-        page++;
-
-
-        httpClient.newCall(request).enqueue(new Callback() {
+        network.getGallery(page, mQuery, this, new Network.RequestListener<JsonElement>() {
             @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                Log.e("MAIN ACTIVITY", "An error has occurred " + e);
+            public void onSuccess(JsonElement response) {
+//                Log.i("RETROFIT",response.toString());
+
+                Type listType = new TypeToken<ArrayList<ImgurImage>>() {
+                }.getType();
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.registerTypeAdapter(listType, new ImgurDeserializer());
+                Gson gson = gsonBuilder.create();
+
+                ArrayList<ImgurImage> a = gson.fromJson(response, listType);
+                images.addAll(a);
+
+                runOnUiThread(() -> {
+                    mainAdapter.notifyItemRangeInserted(mainAdapter.getItemCount(), images.size() - 1);
+                    progressBar.setVisibility(View.GONE);
+                    page++;
+                });
             }
 
             @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+            public void onResponse() {
 
-                if (response.body() != null) {
-                    Type listType = new TypeToken<ArrayList<ImgurImage>>() {
-                    }.getType();
-                    GsonBuilder gsonBuilder = new GsonBuilder();
-                    gsonBuilder.registerTypeAdapter(listType, new ImgurDeserializer());
-                    Gson gson = gsonBuilder.create();
+            }
 
-                    ArrayList<ImgurImage> a = gson.fromJson(response.body().string(), listType);
-                    images.addAll(a);
+            @Override
+            public void onError() {
 
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mainAdapter.notifyItemRangeInserted(mainAdapter.getItemCount(), images.size() - 1);
-                            progressBar.setVisibility(View.GONE);
-                        }
-                    });
-                }
             }
         });
     }
@@ -142,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements OnListInteraction
 
     private void loadNextDataFromApi() {
         Log.d("MAIN ACTIVITY", " loading more data: " + page);
-        fetchData();
+        networkCall();
     }
 
 }
